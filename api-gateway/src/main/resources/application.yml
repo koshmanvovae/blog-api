@@ -5,14 +5,14 @@ spring:
        - id: blog-service
          uri: lb://BLOG-SERVICE
          predicates:
-           - Path=/api/posts/**
+           - Path=/api/posts/**, /v3/api-docs/blog
          filters:
            - AuthenticationFilter
 
        - id: authentication-service
          uri: lb://AUTHENTICATION-SERVICE
          predicates:
-           - Path=/auth/**
+           - Path=/auth/**, /v3/api-docs/authentication
 
  application:
    name: api-gateway
@@ -21,3 +21,7 @@ eureka:
   client:
     service-url:
       defaultZone : http://localhost:8761/eureka/
+
+springdoc:
+  swagger-ui:
+    enabled: true
