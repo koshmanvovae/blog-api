@@ -11,6 +11,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.server.ResponseStatusException;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -56,7 +57,7 @@ public class CommentController {
         }
 
         if(LocalDateTime.now().isAfter(existingComment.getEnableToUpdateTill())){
-            return ResponseEntity.status(FORBIDDEN).build();
+            throw new ResponseStatusException(FORBIDDEN, "Time was expired so you can't update this comment");
         }
 
         existingComment.setContent(comment.content());
