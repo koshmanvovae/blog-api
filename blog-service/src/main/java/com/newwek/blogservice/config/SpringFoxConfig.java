@@ -38,11 +38,11 @@ public class SpringFoxConfig {
     public OpenAPI springShopOpenAPI() {
         return new OpenAPI()
                 .info(new Info().title("Cloud API")
-                        .description("This API serves as a backbone for cloud service operations, " +
-                                     "providing an interface for the management of cloud resources. " +
-                                     "It includes endpoints for blog management, user authentication, " +
-                                     "and other cloud-based services, designed to streamline operations " +
-                                     "and enhance user interaction with the cloud platform.")
+                        .description("""
+                                This API serves as a backbone for blog post service operations. \
+                                It includes endpoints for to create, update, get, delete blog post. \
+                                Also due to specific requirements Blog Post List always returns sorted by comments_counter field.\
+                                Due to this, this api has opportunity to increment and decrement comments_counter.""")
                         .version("1.0")
                         .license(new License().name("Apache 2.0").url("http://springdoc.org")));
     }

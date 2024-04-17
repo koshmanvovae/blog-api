@@ -47,7 +47,7 @@ public class PostController {
                           "This endpoint is crucial for accessing detailed information about a post, including its content, author, and engagement metrics. " +
                           "Useful for detailed views where one might display the full content and comments.")
     @ApiResponses({
-            @ApiResponse(responseCode = "200", description = "Successful operation", content = @Content(schema = @Schema(implementation = Post.class))),
+            @ApiResponse(responseCode = "200", description = "Successful operation", content = @Content(schema = @Schema(implementation = PostDto.class))),
             @ApiResponse(responseCode = "404", description = "Post not found, indicating no post exists with the provided ID")
     })
     public ResponseEntity<PostDto> getPostById(@PathVariable Long id) {
@@ -60,7 +60,7 @@ public class PostController {
     @Operation(summary = "Create a new post",
             description = "Creates a new post with the provided title, content, and author details. " +
                           "This endpoint is responsible for post creation within the blog service, ensuring that all new posts meet validation criteria before being added to the database.")
-    @ApiResponse(responseCode = "201", description = "Post created successfully", content = @Content(schema = @Schema(implementation = Post.class)))
+    @ApiResponse(responseCode = "201", description = "Post created successfully", content = @Content(schema = @Schema(implementation = PostDto.class)))
     public PostDto createPost(@RequestBody @Validated CreatePostDto post) {
         Post newPost = new Post(post.title(), post.content(), post.author());
         return new PostDto(postService.save(newPost));
@@ -72,7 +72,7 @@ public class PostController {
                           "This endpoint allows for the modification of post attributes such as title, content, and author. " +
                           "It is key for maintaining the relevance and accuracy of the post information over time.")
     @ApiResponses({
-            @ApiResponse(responseCode = "200", description = "Post updated successfully", content = @Content(schema = @Schema(implementation = Post.class))),
+            @ApiResponse(responseCode = "200", description = "Post updated successfully", content = @Content(schema = @Schema(implementation = PostDto.class))),
             @ApiResponse(responseCode = "404", description = "Post not found, no update performed due to invalid post ID")
     })
     public ResponseEntity<PostDto> updatePost(@PathVariable Long id, @RequestBody @Validated CreatePostDto postDetails) {
