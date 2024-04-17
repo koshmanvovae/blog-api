@@ -21,6 +21,13 @@ public class PostServiceImpl implements PostService {
     }
 
     @Override
+    public List<Post> findAllSortedByCommentCountDesc() {
+        List<Post> allPosts = findAll();
+        allPosts.sort((a,b) -> b.commentsCounter().compareTo(a.commentsCounter()));
+        return allPosts;
+    }
+
+    @Override
     public Post findById(Long id) {
         return postRepository.findById(id).orElse(null);
     }

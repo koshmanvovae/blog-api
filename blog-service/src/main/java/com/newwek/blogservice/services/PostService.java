@@ -7,6 +7,8 @@ import java.util.List;
 public interface PostService {
     List<Post> findAll();
 
+    List<Post> findAllSortedByCommentCountDesc();
+
     Post findById(Long id);
 
     Post save(Post post);

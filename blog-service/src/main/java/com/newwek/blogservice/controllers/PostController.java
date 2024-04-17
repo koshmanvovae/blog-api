@@ -20,7 +20,7 @@ public class PostController {
 
     @GetMapping
     public List<Post> getAllPosts() {
-        return postService.findAll();
+        return postService.findAllSortedByCommentCountDesc();
     }
 
     @GetMapping("/{id}")
