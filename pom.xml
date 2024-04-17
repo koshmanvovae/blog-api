@@ -17,7 +17,8 @@
 
 
     <modules>
-<!--        <module>api-gateway</module>-->
+        <module>service-registry</module>
+        <module>api-gateway</module>
         <module>authentication-service</module>
         <module>blog-service</module>
     </modules>
