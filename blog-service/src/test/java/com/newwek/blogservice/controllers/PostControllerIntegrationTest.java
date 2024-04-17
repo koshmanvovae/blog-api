@@ -1,16 +1,16 @@
     package com.newwek.blogservice.controllers;
 
+    import com.newwek.blogservice.config.DeletePostAspect;
     import com.newwek.blogservice.domain.Post;
     import org.apache.commons.lang3.RandomStringUtils;
     import org.junit.jupiter.api.BeforeAll;
     import org.junit.jupiter.api.Test;
     import org.springframework.beans.factory.annotation.Autowired;
     import org.springframework.boot.test.context.SpringBootTest;
+    import org.springframework.boot.test.mock.mockito.MockBean;
     import org.springframework.boot.test.web.client.TestRestTemplate;
     import org.springframework.boot.testcontainers.service.connection.ServiceConnection;
-    import org.springframework.http.HttpEntity;
-    import org.springframework.http.HttpStatus;
-    import org.springframework.http.ResponseEntity;
+    import org.springframework.http.*;
     import org.springframework.test.annotation.DirtiesContext;
     import org.springframework.test.annotation.Rollback;
     import org.springframework.transaction.annotation.Transactional;
@@ -35,13 +35,12 @@
         @ServiceConnection
         static MySQLContainer<?> mySQLContainer = new MySQLContainer<>("mysql:8.0.36");
 
+        @MockBean
+        private DeletePostAspect deletePostAspect;
+
         @Autowired
         TestRestTemplate restTemplate;
 
-        @BeforeAll
-        static void setUpBeforeAll(){
-            mySQLContainer.withInitScript("post.sql");
-        }
 
         @Test
         @Rollback

@@ -5,9 +5,9 @@ import com.newwek.blogservice.services.PostService;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.ResultMatcher;
 
@@ -23,8 +23,8 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-@WebMvcTest(PostController.class)
-@AutoConfigureMockMvc
+@WebMvcTest(controllers = PostController.class)
+@ContextConfiguration(classes = PostController.class)
 class PostControllerTest {
 
     @Autowired
@@ -49,21 +49,23 @@ class PostControllerTest {
                         "title": "Blog Post",
                         "content": "This is the blog content.",
                         "author": "Vladimir",
-                        "createdTime": "2024-04-05T21:00:00",
-                        "modifiedTime": "2024-04-14T23:00:00"
+                        "created_time": "2024-04-05T21:00:00",
+                        "modified_time": "2024-04-14T23:00:00",
+                        "comments_counter":0
                     },
                     {
                         "id": 2,
                         "title": "Animals",
                         "content": "Animals blog",
                         "author": "Lion",
-                        "createdTime": "2024-04-15T23:00:00",
-                        "modifiedTime": "2024-04-15T23:00:00"
+                        "created_time": "2024-04-15T23:00:00",
+                        "modified_time": "2024-04-15T23:00:00",
+                        "comments_counter": 0
                     }
                 ]
                 """;
 
-        when(postService.findAll()).thenReturn(posts);
+        when(postService.findAllSortedByCommentCountDesc()).thenReturn(posts);
 
         mockMvc.perform(get("/api/posts"))
                 .andExpect(status().isOk())
@@ -88,53 +90,59 @@ class PostControllerTest {
                          "title": "",
                          "content": "This is the blog content.",
                          "author": "Vladimir",
-                         "createdTime": "2024-04-05T21:00:00",
-                         "modifiedTime": "2024-04-14T23:00:00"
+                         "created_time": "2024-04-05T21:00:00",
+                         "modified_time": "2024-04-14T23:00:00",
+                         "comments_counter":0
                      },
                      {
                          "id": 2,
                          "title": "",
                          "content": "",
                          "author": "Vladimir",
-                         "createdTime": "2024-04-05T21:00:00",
-                         "modifiedTime": "2024-04-14T23:00:00"
+                         "created_time": "2024-04-05T21:00:00",
+                         "modified_time": "2024-04-14T23:00:00",
+                         "comments_counter":0
                      },
                      {
                          "id": 13,
                          "title": "",
                          "content": "",
                          "author": "",
-                         "createdTime": "2024-04-05T21:00:00",
-                         "modifiedTime": "2024-04-14T23:00:00"
+                         "created_time": "2024-04-05T21:00:00",
+                         "modified_time": "2024-04-14T23:00:00",
+                         "comments_counter":0
                      },
                      {
                          "id": 54,
                          "title": "",
                          "content": "",
                          "author": "",
-                         "createdTime": null,
-                         "modifiedTime": null
+                         "created_time": null,
+                         "modified_time": null,
+                         "comments_counter":0
                      },
                      {
                          "id": 233,
                          "title": "Blog",
                          "content": null,
                          "author": "Vladimir",
-                         "createdTime": "2024-04-05T21:00:00",
-                         "modifiedTime": "2024-04-14T23:00:00"
+                         "created_time": "2024-04-05T21:00:00",
+                         "modified_time": "2024-04-14T23:00:00",
+                         "comments_counter":0
                      },
                      {
                          "id": 312,
                          "title": null,
                          "content": null,
                          "author": null,
-                         "createdTime": null,
-                         "modifiedTime": null
+                         "created_time": null,
+                         "modified_time": null,
+                         "comments_counter":0
                      }
                  ]
                 """;
 
-        when(postService.findAll()).thenReturn(posts);
+        when(postService.findAllSortedByCommentCountDesc()).thenReturn(posts);
 
         mockMvc.perform(get("/api/posts"))
                 .andExpect(status().isOk())
@@ -158,8 +166,9 @@ class PostControllerTest {
                 "title":"\{firstPost.title()}",
                 "content":"\{firstPost.content()}",
                 "author":"\{firstPost.author()}",
-                "createdTime":"\{firstPost.createdTime().format(dtf)}",
-                "modifiedTime":"\{firstPost.modifiedTime().format(dtf)}"
+                "created_time":"\{firstPost.createdTime().format(dtf)}",
+                "modified_time":"\{firstPost.modifiedTime().format(dtf)}",
+                "comments_counter":\{firstPost.commentsCounter()}
             }
             """;
 
@@ -170,8 +179,9 @@ class PostControllerTest {
                 "title":"\{secondPost.title()}",
                 "content":"\{secondPost.content()}",
                 "author":"\{secondPost.author()}",
-                "createdTime":"\{secondPost.createdTime().format(dtf)}",
-                "modifiedTime":"\{secondPost.modifiedTime().format(dtf)}"
+                "created_time":"\{secondPost.createdTime().format(dtf)}",
+                "modified_time":"\{secondPost.modifiedTime().format(dtf)}",
+                "comments_counter":\{secondPost.commentsCounter()}
             }
             """;
 
@@ -214,13 +224,14 @@ class PostControllerTest {
         sendAndTestRequest(post, status().isCreated());
 
 
-        testValidPost("Title", RandomStringUtils.randomAlphabetic(9999), "Author");
-        testValidPost("Test",RandomStringUtils.randomAlphabetic(7500), "Author");
-        testValidPost("Test",RandomStringUtils.randomAlphabetic(5000), "Author");
-        testValidPost("Test",RandomStringUtils.randomAlphabetic(2500), "Author");
-        testValidPost("Test",RandomStringUtils.randomAlphabetic(1225), "Author");
-        testValidPost("duo",RandomStringUtils.randomAlphabetic(11), "utc");
-        testValidPost("duo",RandomStringUtils.randomAlphabetic(10), "utc");
+        testValidPost("Title", RandomStringUtils.randomAlphanumeric(10000), "Author");
+        testValidPost("Title", RandomStringUtils.randomAlphanumeric(9999), "Author");
+        testValidPost("Test",RandomStringUtils.randomAlphanumeric(7500), "Author");
+        testValidPost("Test",RandomStringUtils.randomAlphanumeric(5000), "Author");
+        testValidPost("Test",RandomStringUtils.randomAlphanumeric(2500), "Author");
+        testValidPost("Test",RandomStringUtils.randomAlphanumeric(1225), "Author");
+        testValidPost("duo",RandomStringUtils.randomAlphanumeric(11), "utc");
+        testValidPost("duo",RandomStringUtils.randomAlphanumeric(10), "utc");
     }
     @Test
     void shouldNotCreatePostIfDataInvalid() throws Exception {
@@ -233,8 +244,8 @@ class PostControllerTest {
         testPostWithInvalidData("", "N", "V");
         testPostWithInvalidData( "","N", "Vladimir");
         testPostWithInvalidData( "","N", "Vladimir");
-        testPostWithInvalidData("Title",RandomStringUtils.random(10000), "Author");
-        testPostWithInvalidData("Title",RandomStringUtils.random(10001), "Author");
+        testPostWithInvalidData("Title",RandomStringUtils.randomAlphanumeric(10001), "Author");
+        testPostWithInvalidData("Title",RandomStringUtils.randomAlphanumeric(10002), "Author");
         testPostWithInvalidData("Title",RandomStringUtils.random(9), "Author");
         testPostWithInvalidData("Title",RandomStringUtils.random(8), "Author");
     }
