@@ -4,6 +4,7 @@ import com.newwek.commentservice.domain.Comment;
 import com.newwek.commentservice.repository.CommentRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -12,13 +13,13 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.server.ResponseStatusException;
 
+import java.sql.SQLException;
 import java.util.List;
 import java.util.Objects;
 
 import static java.lang.StringTemplate.STR;
 
 @Service
-@Transactional
 @RequiredArgsConstructor
 @Slf4j
 public class CommentServiceImpl implements CommentService {
@@ -37,13 +38,13 @@ public class CommentServiceImpl implements CommentService {
 
     @Override
     public Comment save(Comment comment) {
-        Long postID = comment.blogPostId();
+        Long postID = comment.getBlogPostId();
         decreaseBlogPostCommentsCounter(postID, HttpMethod.GET);
 
         Comment savedComment;
         try {
             savedComment = commentRepository.save(comment);
-        }catch (Exception exception){
+        }catch (DataIntegrityViolationException exception){
             log.error("Error saving comment {}", comment, exception);
             log.info("Revert blog post comments counter");
 
@@ -70,6 +71,7 @@ public class CommentServiceImpl implements CommentService {
     }
 
     @Override
+    @Transactional
     public void deleteAllForPostId(Long postId) {
         commentRepository.deleteAllByBlogPostId(postId);
     }

@@ -8,6 +8,7 @@ import org.springframework.web.bind.annotation.*;
 @RestController
 @RequestMapping( "/api/posts/update-comments-count")
 @RequiredArgsConstructor
+@CrossOrigin
 public class PostCommentsController {
 
     private final PostCounterService postService;

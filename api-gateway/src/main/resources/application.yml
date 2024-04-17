@@ -9,6 +9,13 @@ spring:
          filters:
            - AuthenticationFilter
 
+       - id: comment-service
+         uri: lb://COMMENT-SERVICE
+         predicates:
+           - Path=/api/comments/**, /v3/api-docs/comment
+         filters:
+           - AuthenticationFilter
+
        - id: authentication-service
          uri: lb://AUTHENTICATION-SERVICE
          predicates:

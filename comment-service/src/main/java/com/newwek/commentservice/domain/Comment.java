@@ -1,12 +1,12 @@
 package com.newwek.commentservice.domain;
 
+import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import jakarta.persistence.*;
 import lombok.*;
 import lombok.experimental.Accessors;
 
 import java.time.LocalDateTime;
 
-@Accessors(fluent = true)
 @Getter
 @Setter
 @ToString
@@ -15,6 +15,7 @@ import java.time.LocalDateTime;
 @Builder
 @Entity
 @Table(name = "comment")
+@JsonDeserialize
 public class Comment {
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
@@ -24,7 +25,7 @@ public class Comment {
     @Column(name = "blog_post_id", nullable = false)
     private Long blogPostId;
 
-    @Column(unique = true, nullable = false)
+    @Column(nullable = false)
     private String username;
 
     @Column(name = "content", nullable = false)

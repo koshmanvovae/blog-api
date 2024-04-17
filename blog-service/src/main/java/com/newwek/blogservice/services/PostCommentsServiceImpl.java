@@ -18,7 +18,7 @@ public class PostCommentsServiceImpl implements PostCommentsService {
 
     @Override
     public void deleteAllCommentForBlogPost(Long postId) {
-        ResponseEntity<Object> deleteResponse = restTemplate.exchange(STR."http://COMMENTS-SERVICE/api/comments/post/\{postId}", HttpMethod.DELETE, null, Object.class);
+        ResponseEntity<Object> deleteResponse = restTemplate.exchange(STR."http://COMMENT-SERVICE/api/comments/post/\{postId}", HttpMethod.DELETE, null, Object.class);
 
         checkResponseForIssues(deleteResponse);
     }

@@ -20,6 +20,7 @@ import static org.springframework.http.HttpStatus.FORBIDDEN;
 @RestController
 @RequestMapping( "/api/comments")
 @RequiredArgsConstructor
+@CrossOrigin
 public class CommentController {
 
     private final CommentService commentService;
@@ -50,15 +51,15 @@ public class CommentController {
             return ResponseEntity.notFound().build();
         }
 
-        if(!username.equals(existingComment.username())){
+        if(!username.equals(existingComment.getUsername())){
             return ResponseEntity.status(FORBIDDEN).build();
         }
 
-        if(LocalDateTime.now().isAfter(existingComment.enableToUpdateTill())){
+        if(LocalDateTime.now().isAfter(existingComment.getEnableToUpdateTill())){
             return ResponseEntity.status(FORBIDDEN).build();
         }
 
-        existingComment.content(comment.content());
+        existingComment.setContent(comment.content());
         Comment savedPost = commentService.save(existingComment);
         return ResponseEntity.ok(savedPost);
     }
