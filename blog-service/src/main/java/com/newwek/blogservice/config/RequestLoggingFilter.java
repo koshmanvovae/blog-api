@@ -1,4 +1,4 @@
-package com.newwek.blogservice.controllers;
+package com.newwek.blogservice.config;
 
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ReadListener;

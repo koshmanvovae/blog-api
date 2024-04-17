@@ -38,8 +38,8 @@ class PostControllerTest {
     @Test
     void getAllPosts_commonScenario() throws Exception {
         posts = List.of(
-                new Post(1L,"Blog Post", "This is the blog content.", "Vladimir", LocalDateTime.of(2024,4, 5,21,0),  LocalDateTime.of(2024,4, 14,23,0)),
-                new Post(2L, "Animals", "Animals blog", "Lion" , LocalDateTime.of(2024,4, 15,23,0),  LocalDateTime.of(2024,4, 15,23,0))
+                new Post(1L,"Blog Post", "This is the blog content.", "Vladimir", LocalDateTime.of(2024,4, 5,21,0),  LocalDateTime.of(2024,4, 14,23,0), 0L),
+                new Post(2L, "Animals", "Animals blog", "Lion" , LocalDateTime.of(2024,4, 15,23,0),  LocalDateTime.of(2024,4, 15,23,0), 0L)
         );
 
         String expectedResult = """
@@ -73,12 +73,12 @@ class PostControllerTest {
     @Test
     void getAllPosts_emptyFields() throws Exception {
         posts = List.of(
-                new Post(1L,"", "This is the blog content.", "Vladimir", LocalDateTime.of(2024,4, 5,21,0),  LocalDateTime.of(2024,4, 14,23,0)),
-                new Post(2L,"", "", "Vladimir", LocalDateTime.of(2024,4, 5,21,0),  LocalDateTime.of(2024,4, 14,23,0)),
-                new Post(13L,"", "", "", LocalDateTime.of(2024,4, 5,21,0),  LocalDateTime.of(2024,4, 14,23,0)),
-                new Post(54L,"", "", "", null,  null),
-                new Post(233L,"Blog", null, "Vladimir", LocalDateTime.of(2024,4, 5,21,0),  LocalDateTime.of(2024,4, 14,23,0)),
-                new Post(312L, null, null, null , null, null)
+                new Post(1L,"", "This is the blog content.", "Vladimir", LocalDateTime.of(2024,4, 5,21,0),  LocalDateTime.of(2024,4, 14,23,0), 0L),
+                new Post(2L,"", "", "Vladimir", LocalDateTime.of(2024,4, 5,21,0),  LocalDateTime.of(2024,4, 14,23,0), 0L),
+                new Post(13L,"", "", "", LocalDateTime.of(2024,4, 5,21,0),  LocalDateTime.of(2024,4, 14,23,0), 0L),
+                new Post(54L,"", "", "", null,  null, 0L),
+                new Post(233L,"Blog", null, "Vladimir", LocalDateTime.of(2024,4, 5,21,0),  LocalDateTime.of(2024,4, 14,23,0), 0L),
+                new Post(312L, null, null, null , null, null, 0L)
         );
 
         String expectedResult = """
@@ -144,8 +144,8 @@ class PostControllerTest {
     @Test
     void getPostById() throws Exception {
         posts = List.of(
-                new Post(1L,"Blog Post", "This is the blog content.", "Vladimir", LocalDateTime.of(2024,4, 5,21,0),  LocalDateTime.of(2024,4, 14,23,0)),
-                new Post(2L, "Animals", "Animals blog", "Lion" , LocalDateTime.of(2024,4, 15,23,0),  LocalDateTime.of(2024,4, 15,23,0))
+                new Post(1L,"Blog Post", "This is the blog content.", "Vladimir", LocalDateTime.of(2024,4, 5,21,0),  LocalDateTime.of(2024,4, 14,23,0), 0L),
+                new Post(2L, "Animals", "Animals blog", "Lion" , LocalDateTime.of(2024,4, 15,23,0),  LocalDateTime.of(2024,4, 15,23,0), 0L)
         );
 
 
@@ -206,7 +206,8 @@ class PostControllerTest {
                 "NEW This is the blog content.",
                 "Vladimir",
                 LocalDateTime.of(2024, 4, 5, 21, 0),
-                LocalDateTime.of(2024, 4, 14, 23, 0));
+                LocalDateTime.of(2024, 4, 14, 23, 0),
+                0L);
 
         when(postService.save(post)).thenReturn(updatedPost);
 
@@ -275,7 +276,8 @@ class PostControllerTest {
                 "NEW This is the blog content.",
                 "Vladimir",
                 LocalDateTime.of(2024, 4, 5, 21, 0),
-                LocalDateTime.of(2024, 4, 14, 23, 0));
+                LocalDateTime.of(2024, 4, 14, 23, 0),
+                0L);
         String requestBody = STR."""
                 {
                     "title": "\{post.title()}",
@@ -327,7 +329,8 @@ class PostControllerTest {
                 "NEW This is the blog content.",
                 "Vladimir",
                 LocalDateTime.of(2024, 4, 5, 21, 0),
-                LocalDateTime.of(2024, 4, 14, 23, 0));
+                LocalDateTime.of(2024, 4, 14, 23, 0),
+                0L);
         String requestBody = """
                 {
                     "title": "1",
@@ -352,7 +355,8 @@ class PostControllerTest {
                 "NEW This is the blog content.",
                 "Vladimir",
                 LocalDateTime.of(2024, 4, 5, 21, 0),
-                LocalDateTime.of(2024, 4, 14, 23, 0));
+                LocalDateTime.of(2024, 4, 14, 23, 0),
+                0L);
         when(postService.findById(post.id())).thenReturn(post);
 
         mockMvc.perform(delete(STR."/api/posts/\{post.id()}"))

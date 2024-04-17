@@ -64,6 +64,16 @@ public class CommentServiceImpl implements CommentService {
         }
     }
 
+    @Override
+    public List<Comment> findCommentsByPostId(Long blogPostId) {
+        return commentRepository.findAllByBlogPostId(blogPostId);
+    }
+
+    @Override
+    public void deleteAllForPostId(Long postId) {
+        commentRepository.deleteAllByBlogPostId(postId);
+    }
+
     private void decreaseBlogPostCommentsCounter(Long postID, HttpMethod delete) {
         ResponseEntity<Object> deleteResponse = restTemplate.exchange(STR."http://BLOG-SERVICE/api/posts/update-comments-count/\{postID}", delete, null, Object.class);
 

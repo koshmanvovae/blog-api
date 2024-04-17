@@ -71,4 +71,15 @@ public class CommentController {
         commentService.deleteById(id);
         return ResponseEntity.noContent().build();
     }
+
+    @DeleteMapping("/post/{postId}")
+    public ResponseEntity<Void> deleteCommentsForPostId(@PathVariable @NotNull Long postId) {
+        List<Comment> commentsByPostId = commentService.findCommentsByPostId(postId);
+        if (commentsByPostId == null || commentsByPostId.isEmpty()) {
+            return ResponseEntity.notFound().build();
+        }
+        commentService.deleteAllForPostId(postId);
+
+        return ResponseEntity.noContent().build();
+    }
 }

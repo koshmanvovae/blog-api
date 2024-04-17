@@ -50,9 +50,14 @@ public class Post {
     @JsonProperty("modified_time")
     private LocalDateTime modifiedTime;
 
+    @Column
+    @JsonProperty("comments_counter")
+    private Long commentsCounter;
+
     @PrePersist
     protected void onCreate() {
         createdTime = LocalDateTime.now();
+        commentsCounter = 0L;
     }
 
     @PreUpdate

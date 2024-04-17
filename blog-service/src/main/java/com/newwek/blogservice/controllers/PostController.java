@@ -11,7 +11,7 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
 @RestController
-@RequestMapping( "/api/posts")
+@RequestMapping("/api/posts")
 @RequiredArgsConstructor
 public class PostController {
 
@@ -41,7 +41,15 @@ public class PostController {
             return ResponseEntity.notFound().build();
         }
 
-        Post updatedPost = new Post(post.id(), postDetails.title(), postDetails.content(), postDetails.author(), post.createdTime(), post.modifiedTime());
+        Post updatedPost = new Post(
+                post.id(),
+                postDetails.title(),
+                postDetails.content(),
+                postDetails.author(),
+                post.createdTime(),
+                post.modifiedTime(),
+                post.commentsCounter());
+
         Post savedPost = postService.save(updatedPost);
         return ResponseEntity.ok(savedPost);
     }
