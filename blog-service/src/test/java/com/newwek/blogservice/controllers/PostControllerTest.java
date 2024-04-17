@@ -1,6 +1,8 @@
 package com.newwek.blogservice.controllers;
 
 import com.newwek.blogservice.domain.Post;
+import com.newwek.blogservice.domain.dto.PostDto;
+import com.newwek.blogservice.domain.dto.CreatePostDto;
 import com.newwek.blogservice.services.PostService;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.junit.jupiter.api.Test;
@@ -159,7 +161,8 @@ class PostControllerTest {
 
         DateTimeFormatter dtf = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss");
 
-        Post firstPost = posts.get(0);
+        Post selectedPost1 = posts.get(0);
+        PostDto firstPost = new PostDto(selectedPost1);
         String expectedResult1 = STR."""
             {
                 "id":\{firstPost.id()},
@@ -172,7 +175,8 @@ class PostControllerTest {
             }
             """;
 
-        Post secondPost = posts.get(1);
+        Post selectedPost2 = posts.get(1);
+        PostDto secondPost = new PostDto(selectedPost2);
         String expectedResult2 = STR."""
             {
                 "id":\{secondPost.id()},
@@ -185,8 +189,8 @@ class PostControllerTest {
             }
             """;
 
-        when(postService.findById(1L)).thenReturn(firstPost);
-        when(postService.findById(2L)).thenReturn(secondPost);
+        when(postService.findById(1L)).thenReturn(selectedPost1);
+        when(postService.findById(2L)).thenReturn(selectedPost2);
 
         mockMvc.perform(get("/api/posts/1"))
                 .andExpect(status().isOk())
@@ -219,10 +223,11 @@ class PostControllerTest {
                 LocalDateTime.of(2024, 4, 14, 23, 0),
                 0L);
 
-        when(postService.save(post)).thenReturn(updatedPost);
+        when(postService.save(any())).thenReturn(updatedPost);
 
-        sendAndTestRequest(post, status().isCreated());
+        sendAndTestRequest(new CreatePostDto(post.getTitle(),post.getContent(),post.getAuthor()), status().isCreated());
 
+        verify(postService, times(1)).save(any());
 
         testValidPost("Title", RandomStringUtils.randomAlphanumeric(10000), "Author");
         testValidPost("Title", RandomStringUtils.randomAlphanumeric(9999), "Author");
@@ -257,15 +262,16 @@ class PostControllerTest {
     private void testValidPost(String title, String content, String author) throws Exception {
         Post post = new Post(title, content, author);
         when(postService.save(post)).thenReturn(post);
-        sendAndTestRequest(post, status().isCreated());
+
+        sendAndTestRequest(new CreatePostDto(post.getTitle(),post.getContent(),post.getAuthor()), status().isCreated());
     }
 
     private void testPost(String title, String content, String author, ResultMatcher expectedMatcher) throws Exception {
-        Post post = new Post(title, content, author);
+        CreatePostDto post = new CreatePostDto(title, content, author);
         sendAndTestRequest(post, expectedMatcher);
     }
 
-    private void sendAndTestRequest(Post post, ResultMatcher expectedMatcher) throws Exception {
+    private void sendAndTestRequest(CreatePostDto post, ResultMatcher expectedMatcher) throws Exception {
         String requestBody = STR."""
                 {
                     "title": "\{post.title()}",
@@ -289,16 +295,18 @@ class PostControllerTest {
                 LocalDateTime.of(2024, 4, 5, 21, 0),
                 LocalDateTime.of(2024, 4, 14, 23, 0),
                 0L);
+
         String requestBody = STR."""
                 {
-                    "title": "\{post.title()}",
-                    "content": "\{post.content()}",
-                    "author": "\{post.author()}"
+                    "title": "\{post.getTitle()}",
+                    "content": "\{post.getContent()}",
+                    "author": "\{post.getAuthor()}"
                 }
                 """;
-        when(postService.findById(post.id())).thenReturn(post);
+        when(postService.findById(post.getId())).thenReturn(post);
+        when(postService.save(eq(post))).thenReturn(post);
 
-        mockMvc.perform(put(STR."/api/posts/\{post.id()}")
+        mockMvc.perform(put(STR."/api/posts/\{post.getId()}")
                         .contentType(APPLICATION_JSON)
                         .content(requestBody))
                 .andExpect(status().isOk());
@@ -349,9 +357,9 @@ class PostControllerTest {
                     "author": "auth"
                 }
                 """;
-        when(postService.findById(post.id())).thenReturn(post);
+        when(postService.findById(post.getId())).thenReturn(post);
 
-        mockMvc.perform(put(STR."/api/posts/\{post.id()}")
+        mockMvc.perform(put(STR."/api/posts/\{post.getId()}")
                         .contentType(APPLICATION_JSON)
                         .content(requestBody))
                 .andExpect(status().isBadRequest());
@@ -368,9 +376,9 @@ class PostControllerTest {
                 LocalDateTime.of(2024, 4, 5, 21, 0),
                 LocalDateTime.of(2024, 4, 14, 23, 0),
                 0L);
-        when(postService.findById(post.id())).thenReturn(post);
+        when(postService.findById(post.getId())).thenReturn(post);
 
-        mockMvc.perform(delete(STR."/api/posts/\{post.id()}"))
+        mockMvc.perform(delete(STR."/api/posts/\{post.getId()}"))
                 .andExpect(status().isNoContent());
     }
 
