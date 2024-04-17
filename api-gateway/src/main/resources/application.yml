@@ -1,0 +1,23 @@
+spring:
+ cloud:
+   gateway:
+     routes:
+       - id: blog-service
+         uri: lb://BLOG-SERVICE
+         predicates:
+           - Path=/api/posts/**
+         filters:
+           - AuthenticationFilter
+
+       - id: authentication-service
+         uri: lb://AUTHENTICATION-SERVICE
+         predicates:
+           - Path=/auth/**
+
+ application:
+   name: api-gateway
+
+eureka:
+  client:
+    service-url:
+      defaultZone : http://localhost:8761/eureka/
