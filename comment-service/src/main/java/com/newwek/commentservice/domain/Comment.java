@@ -21,6 +21,9 @@ public class Comment {
     @Column(name = "id", nullable = false)
     private Long id;
 
+    @Column(name = "blog_post_id", nullable = false)
+    private Long blogPostId;
+
     @Column(unique = true, nullable = false)
     private String username;
 
@@ -36,6 +39,11 @@ public class Comment {
     @Column(name = "modified_time")
     private LocalDateTime modifiedTime;
 
+    public Comment(Long blogPostId, String username, String content) {
+        this.blogPostId = blogPostId;
+        this.username = username;
+        this.content = content;
+    }
 
     @PrePersist
     protected void onCreate() {
