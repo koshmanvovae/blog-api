@@ -13,7 +13,6 @@ import java.util.List;
 @RestController
 @RequestMapping( "/api/posts")
 @RequiredArgsConstructor
-
 public class PostController {
 
     private final PostService postService;
