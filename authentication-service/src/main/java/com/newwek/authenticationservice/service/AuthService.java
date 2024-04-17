@@ -24,8 +24,9 @@ public class AuthService {
         return jwtService.generateToken(username);
     }
 
-    public void validateToken(String token) {
+    public String validateToken(String token) {
         jwtService.validateToken(token);
+        return jwtService.getUserNameFromToken(token);
     }
 
 

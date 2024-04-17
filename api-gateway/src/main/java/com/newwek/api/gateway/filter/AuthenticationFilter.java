@@ -49,7 +49,14 @@ public class AuthenticationFilter extends AbstractGatewayFilterFactory<Authentic
                             .retrieve()
                             .bodyToMono(String.class)
                             .doOnSubscribe(subscription -> log.debug("Requesting: {}", uri))
-                            .flatMap(response -> chain.filter(exchange))
+                            .flatMap(username -> {
+                                log.debug("Username extracted: {}", username);
+                                ServerHttpRequest modifiedRequest = exchange.getRequest()
+                                        .mutate()
+                                        .header("X-Username", username)
+                                        .build();
+                                return chain.filter(exchange.mutate().request(modifiedRequest).build());
+                            })
                             .onErrorResume(e -> {
                                 log.info("Error during authentication: {}", e.getMessage());
                                 return onError(exchange, "Authentication Failed");
