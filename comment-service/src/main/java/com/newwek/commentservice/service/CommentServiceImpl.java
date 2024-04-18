@@ -19,6 +19,13 @@ import java.util.Objects;
 
 import static java.lang.StringTemplate.STR;
 
+/**
+ * Provides implementation for {@link CommentService} interface with business logic to manage comments
+ * on blog posts. This service uses {@link CommentRepository} for database operations and integrates
+ * external service calls to manage related functionalities like comment counters.
+ *
+ * @see CommentService for service interface
+ */
 @Service
 @RequiredArgsConstructor
 @Slf4j
@@ -26,36 +33,55 @@ public class CommentServiceImpl implements CommentService {
     private final CommentRepository commentRepository;
     private final RestTemplate restTemplate;
 
+    /**
+     * Retrieves all comments stored in the database.
+     *
+     * @return a list of {@link Comment} instances from the database.
+     */
     @Override
     public List<Comment> findAll() {
         return commentRepository.findAll();
     }
 
+    /**
+     * Finds a single comment by its unique identifier.
+     *
+     * @param id The ID of the comment to find.
+     * @return the found {@link Comment}, or null if no comment exists with the provided ID.
+     */
     @Override
     public Comment findById(Long id) {
         return commentRepository.findById(id).orElse(null);
     }
 
+    /**
+     * Saves a comment to the database and adjusts the comment count for the associated blog post.
+     * If saving fails due to a data integrity issue, it attempts to revert the comment count and throws a status exception.
+     *
+     * @param comment The {@link Comment} to save.
+     * @return the saved {@link Comment} instance.
+     * @throws ResponseStatusException if the comment cannot be saved or the comment count adjustment fails.
+     */
     @Override
     public Comment save(Comment comment) {
         Long postID = comment.getBlogPostId();
         decreaseBlogPostCommentsCounter(postID, HttpMethod.GET);
 
-        Comment savedComment;
         try {
-            savedComment = commentRepository.save(comment);
-        }catch (DataIntegrityViolationException exception){
+            return commentRepository.save(comment);
+        } catch (DataIntegrityViolationException exception) {
             log.error("Error saving comment {}", comment, exception);
-            log.info("Revert blog post comments counter");
-
+            log.info("Reverting blog post comments counter");
             decreaseBlogPostCommentsCounter(postID, HttpMethod.DELETE);
-
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, STR."Could not save comment \{comment}");
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Could not save comment.");
         }
-
-        return savedComment;
     }
 
+    /**
+     * Deletes a comment by its ID and updates the associated blog post's comment count.
+     *
+     * @param id The ID of the comment to delete.
+     */
     @Override
     public void deleteById(Long id) {
         try {
@@ -65,19 +91,39 @@ public class CommentServiceImpl implements CommentService {
         }
     }
 
+    /**
+     * Retrieves all comments associated with a specific blog post ID.
+     *
+     * @param blogPostId The blog post ID for which to find comments.
+     * @return a list of {@link Comment} associated with the given blog post.
+     */
     @Override
     public List<Comment> findCommentsByPostId(Long blogPostId) {
         return commentRepository.findAllByBlogPostId(blogPostId);
     }
 
+    /**
+     * Deletes all comments associated with a given blog post ID and updates the comment count accordingly.
+     * This method is transactional to ensure all deletions complete successfully before updating the count.
+     *
+     * @param postId The blog post ID for which all comments should be deleted.
+     */
     @Override
     @Transactional
     public void deleteAllForPostId(Long postId) {
         commentRepository.deleteAllByBlogPostId(postId);
     }
 
-    private void decreaseBlogPostCommentsCounter(Long postID, HttpMethod delete) {
-        ResponseEntity<Object> deleteResponse = restTemplate.exchange(STR."http://BLOG-SERVICE/api/posts/update-comments-count/\{postID}", delete, null, Object.class);
+    /**
+     * Helper method to decrease the comment count of a blog post by communicating with the blog service.
+     * It handles HTTP responses to determine if the operation was successful or if there were errors.
+     *
+     * @param postID The ID of the blog post whose comment count is to be adjusted.
+     * @param method The HTTP method to use for the request.
+     * @throws ResponseStatusException If the blog post is not found or the service cannot process the request.
+     */
+    private void decreaseBlogPostCommentsCounter(Long postID, HttpMethod method) {
+        ResponseEntity<Object> deleteResponse = restTemplate.exchange("http://BLOG-SERVICE/api/posts/update-comments-count/{postID}", method, null, Object.class);
 
         if (deleteResponse.getStatusCode().isSameCodeAs(HttpStatus.NOT_FOUND)) {
             throw new ResponseStatusException(HttpStatus.NOT_FOUND, STR."Blog post with id \{postID} not found.");
