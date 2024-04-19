@@ -2,6 +2,10 @@ package com.newwek.blogservice.domain.dto;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonRootName;
+import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
+import com.fasterxml.jackson.databind.annotation.JsonSerialize;
+import com.fasterxml.jackson.datatype.jsr310.deser.LocalDateTimeDeserializer;
+import com.fasterxml.jackson.datatype.jsr310.ser.LocalDateTimeSerializer;
 import com.newwek.blogservice.domain.Post;
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.NotEmpty;
@@ -48,10 +52,14 @@ public record PostDto(
 
         @JsonProperty("created_time")
         @Schema(description = "The timestamp when the blog post was first created.", example = "2024-04-12T14:30:00Z", requiredMode = Schema.RequiredMode.REQUIRED)
+        @JsonSerialize(using = LocalDateTimeSerializer.class)
+        @JsonDeserialize(using = LocalDateTimeDeserializer.class)
         LocalDateTime createdTime,
 
         @JsonProperty("modified_time")
         @Schema(description = "The timestamp of the last modification of the blog post, reflecting the most recent update.", example = "2024-04-12T15:00:00Z")
+        @JsonSerialize(using = LocalDateTimeSerializer.class)
+        @JsonDeserialize(using = LocalDateTimeDeserializer.class)
         LocalDateTime modifiedTime,
 
         @JsonProperty("comments_counter")

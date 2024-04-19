@@ -2,11 +2,15 @@ package com.newwek.blogservice.services;
 
 import com.newwek.blogservice.domain.Post;
 import com.newwek.blogservice.repositories.PostRepository;
+import org.springframework.cache.annotation.*;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
 
 import org.springframework.stereotype.Service;
+
+import static com.newwek.blogservice.config.CacheNames.POST_CACHE;
+import static com.newwek.blogservice.config.CacheNames.POST_LIST_CACHE;
 
 /**
  * The {@code PostServiceImpl} class is the implementation of the {@link PostService} interface.
@@ -14,6 +18,7 @@ import org.springframework.stereotype.Service;
  * It uses a {@link PostRepository} for persistence operations.
  */
 @Service
+@CacheConfig(cacheNames = {POST_CACHE, POST_LIST_CACHE})
 public class PostServiceImpl implements PostService {
 
     private final PostRepository postRepository;
@@ -39,6 +44,7 @@ public class PostServiceImpl implements PostService {
      * {@inheritDoc}
      */
     @Override
+    @Cacheable(value = POST_LIST_CACHE, keyGenerator = "customKeyGenerator")
     public List<Post> findAllSortedByCommentCountDesc() {
         List<Post> allPosts = findAll();
         allPosts.sort((a, b) -> b.getCommentsCounter().compareTo(a.getCommentsCounter()));
@@ -49,6 +55,7 @@ public class PostServiceImpl implements PostService {
      * {@inheritDoc}
      */
     @Override
+    @Cacheable(value = POST_CACHE, key = "#id")
     public Post findById(Long id) {
         return postRepository.findById(id).orElse(null);
     }
@@ -57,6 +64,10 @@ public class PostServiceImpl implements PostService {
      * {@inheritDoc}
      */
     @Override
+    @Caching(
+            evict = {@CacheEvict(value = POST_LIST_CACHE, allEntries = true)},
+            put = {@CachePut(value = POST_CACHE, key = "#post.id")}
+    )
     public Post save(Post post) {
         return postRepository.save(post);
     }
@@ -65,6 +76,10 @@ public class PostServiceImpl implements PostService {
      * {@inheritDoc}
      */
     @Override
+    @Caching(
+            evict = {@CacheEvict(value = POST_LIST_CACHE, allEntries = true),
+                     @CacheEvict(value = POST_CACHE, key = "#id")}
+    )
     public void deleteById(Long id) {
         postRepository.deleteById(id);
     }
