@@ -4,6 +4,7 @@ import com.newwek.commentservice.domain.Comment;
 import com.newwek.commentservice.repository.CommentRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.cache.annotation.*;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
@@ -17,6 +18,7 @@ import java.sql.SQLException;
 import java.util.List;
 import java.util.Objects;
 
+import static com.newwek.commentservice.config.CacheNames.*;
 import static java.lang.StringTemplate.STR;
 
 /**
@@ -29,6 +31,7 @@ import static java.lang.StringTemplate.STR;
 @Service
 @RequiredArgsConstructor
 @Slf4j
+@CacheConfig(cacheNames = {COMMENT_CACHE, COMMENTS_LIST_CACHE, BLOG_COMMENTS_CACHE})
 public class CommentServiceImpl implements CommentService {
     private final CommentRepository commentRepository;
     private final RestTemplate restTemplate;
@@ -39,6 +42,7 @@ public class CommentServiceImpl implements CommentService {
      * @return a list of {@link Comment} instances from the database.
      */
     @Override
+    @Cacheable(value = COMMENTS_LIST_CACHE, keyGenerator = "customKeyGenerator")
     public List<Comment> findAll() {
         return commentRepository.findAll();
     }
@@ -50,6 +54,7 @@ public class CommentServiceImpl implements CommentService {
      * @return the found {@link Comment}, or null if no comment exists with the provided ID.
      */
     @Override
+    @Cacheable(value = COMMENT_CACHE, key = "#id")
     public Comment findById(Long id) {
         return commentRepository.findById(id).orElse(null);
     }
@@ -63,6 +68,13 @@ public class CommentServiceImpl implements CommentService {
      * @throws ResponseStatusException if the comment cannot be saved or the comment count adjustment fails.
      */
     @Override
+    @Caching(
+            evict = {
+                     @CacheEvict(value = COMMENTS_LIST_CACHE, allEntries = true),
+                     @CacheEvict(value = BLOG_COMMENTS_CACHE, allEntries = true)
+            },
+            put = {@CachePut(value = COMMENT_CACHE, key = "#comment.id")}
+    )
     public Comment save(Comment comment) {
         Long postID = comment.getBlogPostId();
         decreaseBlogPostCommentsCounter(postID, HttpMethod.GET);
@@ -83,6 +95,13 @@ public class CommentServiceImpl implements CommentService {
      * @param id The ID of the comment to delete.
      */
     @Override
+    @Caching(
+            evict = {
+                    @CacheEvict(value = BLOG_COMMENTS_CACHE, allEntries = true),
+                    @CacheEvict(value = COMMENTS_LIST_CACHE, allEntries = true),
+                    @CacheEvict(value = COMMENT_CACHE, key = "#id"),
+            }
+    )
     public void deleteById(Long id) {
         try {
             decreaseBlogPostCommentsCounter(id, HttpMethod.DELETE);
@@ -98,6 +117,7 @@ public class CommentServiceImpl implements CommentService {
      * @return a list of {@link Comment} associated with the given blog post.
      */
     @Override
+    @Cacheable(value = BLOG_COMMENTS_CACHE, key = "#blogPostId")
     public List<Comment> findCommentsByPostId(Long blogPostId) {
         return commentRepository.findAllByBlogPostId(blogPostId);
     }
@@ -110,6 +130,12 @@ public class CommentServiceImpl implements CommentService {
      */
     @Override
     @Transactional
+    @Caching(
+            evict = {@CacheEvict(value = BLOG_COMMENTS_CACHE, key = "#postId"),
+                    @CacheEvict(value = COMMENT_CACHE, allEntries = true),
+                    @CacheEvict(value = COMMENTS_LIST_CACHE, allEntries = true),
+            }
+    )
     public void deleteAllForPostId(Long postId) {
         commentRepository.deleteAllByBlogPostId(postId);
     }
@@ -123,7 +149,7 @@ public class CommentServiceImpl implements CommentService {
      * @throws ResponseStatusException If the blog post is not found or the service cannot process the request.
      */
     private void decreaseBlogPostCommentsCounter(Long postID, HttpMethod method) {
-        ResponseEntity<Object> deleteResponse = restTemplate.exchange("http://BLOG-SERVICE/api/posts/update-comments-count/{postID}", method, null, Object.class);
+        ResponseEntity<Object> deleteResponse = restTemplate.exchange(STR."http://BLOG-SERVICE/api/posts/update-comments-count/\{postID}", method, null, Object.class);
 
         if (deleteResponse.getStatusCode().isSameCodeAs(HttpStatus.NOT_FOUND)) {
             throw new ResponseStatusException(HttpStatus.NOT_FOUND, STR."Blog post with id \{postID} not found.");
